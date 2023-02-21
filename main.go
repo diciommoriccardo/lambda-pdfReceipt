@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -36,6 +37,12 @@ type copiaProforma struct {
 	inizioLavoro    string `json:"inizioLavoro"`
 	fineLavoro      string `json:"fineLavoro"`
 	tot             string `json:"tot"`
+	idTicket        int    `json:"idTicket"`
+}
+
+type proformaReturn struct {
+	receiptURL string `json:"receiptURL"`
+	message    string `json:"message"`
 }
 
 func init() {
@@ -45,10 +52,7 @@ func init() {
 }
 
 func HandleRequest(ctx context.Context, temp copiaProforma) (string, error) {
-	return fmt.Sprintf("Hello %s!", temp.ragioneSociale), nil
-}
 
-func main() {
 	bucketname := os.Getenv("BUCKET_NAME")
 	key := os.Getenv("OBJECT_KEY")
 
@@ -95,9 +99,20 @@ func main() {
 	}
 
 	doc := r.Editable()
-	doc.Replace("ragioneSociale", "riccardo", 1)
 
-	newKey := *aws.String(time.Now().Format("01-02-2006 15.04.05")) + key
+	doc.Replace("ragioneSociale", temp.ragioneSociale, 1)
+	doc.Replace("indirizzoTicket", temp.indirizzoTicket, 1)
+	doc.Replace("indirizzo", temp.indirizzo, 1)
+	doc.Replace("citta", temp.citta, 1)
+	doc.Replace("numTel", temp.numTel, 1)
+	doc.Replace("piva", temp.piva, 1)
+	doc.Replace("inizioLavoro", temp.inizioLavoro, 1)
+	doc.Replace("fineLavoro", temp.fineLavoro, 1)
+	doc.Replace("tot", temp.tot, 1)
+	doc.Replace("pz", temp.pz, 1)
+	doc.Replace("prezzo", temp.prezzo, 1)
+
+	newKey := *aws.String(strconv.Itoa(temp.idTicket)) + *aws.String(time.Now().Format("01-02-2006 15.04.05")) + key
 
 	if err := doc.WriteToFile(filepath.Join("./final", filepath.Base(newKey))); err != nil {
 		log.Fatal(err)
@@ -137,6 +152,11 @@ func main() {
 
 	fmt.Println("Object Size:", aws.Int64Value(result.ContentLength))
 	//return err
+
+	return fmt.Sprintf("Hello %s!", temp.ragioneSociale), nil
+}
+
+func main() {
 
 	lambda.Start(HandleRequest)
 }
