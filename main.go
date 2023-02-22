@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -55,6 +56,9 @@ func HandleRequest(ctx context.Context, temp copiaProforma) (string, error) {
 
 	bucketname := os.Getenv("BUCKET_NAME")
 	key := os.Getenv("OBJECT_KEY")
+
+	jsonTemp, _ := json.MarshalIndent(temp, "", "  ")
+	log.Printf("INPUT: %s", jsonTemp)
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Profile: "default",
